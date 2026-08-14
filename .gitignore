@@ -62,6 +62,9 @@ Desktop.ini
 supabase/.branches/
 supabase/.temp/
 
+# ---- Herramientas locales ----
+.claude/settings.local.json
+
 # ---- Misc ----
 .vercel
 .cache/
