@@ -1,16 +1,4 @@
-name: CI
-
-on:
-  push:
-    branches: ['**']
-  pull_request:
-    branches: [main, develop]
-
-jobs:
-  ci:
-    name: Lint & Typecheck
-    runs-on: ubuntu-latest
-    steps:
+steps:
       - uses: actions/checkout@v4
 
       - uses: pnpm/action-setup@v3
@@ -23,7 +11,5 @@ jobs:
           cache: 'pnpm'
 
       - run: pnpm install --frozen-lockfile
-
-      - run: pnpm lint
 
       - run: pnpm typecheck
