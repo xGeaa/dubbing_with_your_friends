@@ -4,7 +4,9 @@ import { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import { ArrowLeft, LoaderCircle } from 'lucide-react'
 import {
+  GAME_EVENTS,
   ROOM_EVENTS,
+  type GameStartPayload,
   type RoomErrorPayload,
   type RoomUpdatedPayload,
 } from '@dub/shared-types'
@@ -13,6 +15,7 @@ import { Button } from '@/components/ui/button'
 import { ErrorMessage } from '@/components/game/ErrorMessage'
 import { Lobby } from '@/components/game/Lobby'
 import { PhasePlaceholder } from '@/components/game/PhasePlaceholder'
+import { RecordScreen } from '@/components/game/RecordScreen'
 import { loadNickname } from '@/lib/nickname'
 import { isValidRoomCode, normalizeRoomCode } from '@/lib/room'
 import {
@@ -25,6 +28,8 @@ import { useGameStore } from '@/store/gameStore'
 
 const CONNECT_TIMEOUT_MS = 12_000
 const NOTICE_TIMEOUT_MS = 5_000
+/** Igual que `RECORD_DURATION_SEC` en la GameStateMachine del servidor. */
+const DEFAULT_ROUND_SEC = 30
 
 export default function RoomPage({ params }: { params: { code: string } }) {
   const code = normalizeRoomCode(params.code)
@@ -35,6 +40,13 @@ export default function RoomPage({ params }: { params: { code: string } }) {
   const [fatalError, setFatalError] = useState<string | null>(null)
   const [notice, setNotice] = useState<string | null>(null)
   const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // `game:start` trae la duración de la ronda; el instante de recepción es la
+  // referencia para que el countdown vaya a la par que el timer del servidor.
+  const [round, setRound] = useState<{
+    durationSec: number
+    startedAt: number
+  } | null>(null)
 
   useEffect(() => {
     const { setRoom, setLocalPlayer, reset } = useGameStore.getState()
@@ -78,6 +90,10 @@ export default function RoomPage({ params }: { params: { code: string } }) {
       if (me) setLocalPlayer(me)
     }
 
+    const onGameStart = ({ roundDurationSec }: GameStartPayload) => {
+      setRound({ durationSec: roundDurationSec, startedAt: Date.now() })
+    }
+
     const onRoomError = ({ message }: RoomErrorPayload) => {
       const text = translateRoomError(message)
       // Si ya estamos dentro de la sala el error es de una acción concreta
@@ -109,6 +125,7 @@ export default function RoomPage({ params }: { params: { code: string } }) {
 
     socket.on(ROOM_EVENTS.UPDATED, onUpdated)
     socket.on(ROOM_EVENTS.ERROR, onRoomError)
+    socket.on(GAME_EVENTS.START, onGameStart)
     socket.on('connect', onConnect)
     socket.on('disconnect', onDisconnect)
     socket.on('connect_error', onConnectError)
@@ -126,6 +143,7 @@ export default function RoomPage({ params }: { params: { code: string } }) {
       if (noticeTimer.current) clearTimeout(noticeTimer.current)
       socket.off(ROOM_EVENTS.UPDATED, onUpdated)
       socket.off(ROOM_EVENTS.ERROR, onRoomError)
+      socket.off(GAME_EVENTS.START, onGameStart)
       socket.off('connect', onConnect)
       socket.off('disconnect', onDisconnect)
       socket.off('connect_error', onConnectError)
@@ -133,6 +151,30 @@ export default function RoomPage({ params }: { params: { code: string } }) {
       reset()
     }
   }, [code])
+
+  const renderPhase = () => {
+    if (!room) return null
+
+    if (room.phase === 'lobby') {
+      return <Lobby room={room} localPlayerId={localPlayer?.id ?? null} />
+    }
+
+    if (room.phase === 'record' && room.currentClip) {
+      return (
+        <RecordScreen
+          room={room}
+          clip={room.currentClip}
+          // Si entramos con la ronda ya empezada no hemos visto `game:start`:
+          // caemos al valor por defecto del servidor.
+          duration={round?.durationSec ?? DEFAULT_ROUND_SEC}
+          startedAt={round?.startedAt}
+          localPlayerId={localPlayer?.id ?? null}
+        />
+      )
+    }
+
+    return <PhasePlaceholder phase={room.phase} />
+  }
 
   return (
     <main className="bg-stage flex min-h-screen flex-col items-center justify-center gap-6 px-4 py-8 sm:py-12">
@@ -151,11 +193,7 @@ export default function RoomPage({ params }: { params: { code: string } }) {
           </Button>
         </div>
       ) : room ? (
-        room.phase === 'lobby' ? (
-          <Lobby room={room} localPlayerId={localPlayer?.id ?? null} />
-        ) : (
-          <PhasePlaceholder phase={room.phase} />
-        )
+        renderPhase()
       ) : (
         <div className="flex flex-col items-center gap-3 text-muted-foreground">
           <LoaderCircle className="size-8 animate-spin text-primary" />
