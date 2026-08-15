@@ -5,6 +5,7 @@ import cors from 'cors'
 import { RoomManager } from './rooms/RoomManager'
 import { registerRoomHandlers } from './socket/handlers/roomHandlers'
 import clipsRouter from './routes/clips'
+import audioRouter from './routes/audio'
 
 const app = express()
 const httpServer = createServer(app)
@@ -25,6 +26,7 @@ app.get('/health', (_req, res) => {
 })
 
 app.use('/clips', clipsRouter)
+app.use('/audio', audioRouter)
 
 // ── Socket.io ─────────────────────────────────────────────────────────────────
 const roomManager = new RoomManager()

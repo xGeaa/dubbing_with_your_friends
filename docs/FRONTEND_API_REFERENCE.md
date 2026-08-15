@@ -132,24 +132,22 @@ const clip: Clip = await res.json()
 // Respuesta: { id, youtubeId, startSec, endSec, title, category }
 ```
 
-### Subir grabación de audio
+### Subir grabación de audio ✅ IMPLEMENTADA
 ```ts
 // POST /audio/upload — multipart/form-data
 const formData = new FormData()
-formData.append('audioBlob', blob, 'recording.webm')
+formData.append('audioBlob', blob, 'recording.webm')  // blob del MediaRecorder
 formData.append('roomCode', room.code)
 formData.append('playerId', socket.id)
-formData.append('sessionId', sessionId)
+formData.append('sessionId', sessionId)               // ID único de la ronda, genéralo en el cliente: crypto.randomUUID()
 
 const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/audio/upload`, {
   method: 'POST',
   body: formData,
 })
 const { url } = await res.json()
-// url = URL pública de Supabase Storage para reproducir el audio
+// url = URL pública de Supabase Storage para reproducir el audio con <audio src={url} />
 ```
-
-> ⚠️ Esta API aún no está implementada (ISSUE-016).
 
 ---
 
