@@ -138,10 +138,16 @@ npx vercel --cwd apps/web
 ### Backend (Render)
 
 1. Create a new **Web Service** on [Render](https://render.com)
-2. Root directory: `apps/server`
-3. Build command: `pnpm install && pnpm build`
-4. Start command: `pnpm start`
+2. Root directory: **leave empty** (the repository root)
+3. Build command: `pnpm install --frozen-lockfile && pnpm build --filter @dub/server...`
+4. Start command: `node apps/server/dist/index.js`
 5. Add environment variables from `apps/server/.env.example`
+
+> **Why the repository root and not `apps/server`?**
+> `@dub/server` depends on `@dub/shared-types`, which is compiled to its own
+> `dist/`. Building from inside `apps/server` skips that step and `tsc` fails to
+> resolve the shared types. The trailing `...` in `--filter @dub/server...` tells
+> Turborepo to build the package's dependencies first.
 
 > After deploying the backend, update `NEXT_PUBLIC_SERVER_URL` in Vercel with the Render URL.
 

@@ -1,13 +1,19 @@
 {
   "compilerOptions": {
+    // CommonJS a propósito: apps/server compila a CommonJS y arranca con
+    // `node dist/index.js`, así que necesita poder hacer require() de este
+    // paquete. Next.js consume CommonJS sin problema.
     "target": "ES2020",
-    "module": "ESNext",
-    "moduleResolution": "bundler",
+    "module": "CommonJS",
+    "moduleResolution": "node",
     "lib": ["ES2020"],
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
     "strict": true,
     "noUncheckedIndexedAccess": true,
-    "isolatedModules": true,
-    "noEmit": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true
   },

@@ -10,10 +10,10 @@
     "esModuleInterop": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": true,
-    "resolveJsonModule": true,
-    "paths": {
-      "@dub/shared-types": ["../../packages/shared-types/src/index.ts"]
-    }
+    "resolveJsonModule": true
+    // Sin `paths` hacia el código fuente de shared-types: apuntar al .ts
+    // metía archivos de fuera de `rootDir` en el programa y rompía `tsc`.
+    // Ahora resuelve por node_modules (symlink del workspace) a dist/.
   },
   "include": ["src/**/*"],
   "exclude": ["node_modules", "dist"]
