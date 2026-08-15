@@ -4,6 +4,7 @@ import { Server } from 'socket.io'
 import cors from 'cors'
 import { RoomManager } from './rooms/RoomManager'
 import { registerRoomHandlers } from './socket/handlers/roomHandlers'
+import clipsRouter from './routes/clips'
 
 const app = express()
 const httpServer = createServer(app)
@@ -22,6 +23,8 @@ app.use(express.json())
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() })
 })
+
+app.use('/clips', clipsRouter)
 
 // ── Socket.io ─────────────────────────────────────────────────────────────────
 const roomManager = new RoomManager()
