@@ -3,6 +3,7 @@ import { createServer } from 'http'
 import { Server } from 'socket.io'
 import cors from 'cors'
 import { RoomManager } from './rooms/RoomManager'
+import { GameStateMachine } from './rooms/GameStateMachine'
 import { registerRoomHandlers } from './socket/handlers/roomHandlers'
 import clipsRouter from './routes/clips'
 import audioRouter from './routes/audio'
@@ -30,10 +31,11 @@ app.use('/audio', audioRouter)
 
 // ── Socket.io ─────────────────────────────────────────────────────────────────
 const roomManager = new RoomManager()
+const gsm = new GameStateMachine(io, roomManager)
 
 io.on('connection', (socket) => {
   console.log(`[socket] connected: ${socket.id}`)
-  registerRoomHandlers(io, socket, roomManager)
+  registerRoomHandlers(io, socket, roomManager, gsm)
 })
 
 // ── Start ─────────────────────────────────────────────────────────────────────
