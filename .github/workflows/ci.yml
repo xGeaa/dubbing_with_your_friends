@@ -57,6 +57,21 @@ jobs:
           restore-keys: |
             turbo-${{ runner.os }}-
 
+      # La PR #24 coló 24 duplicados del Finder de macOS ("archivo 2.ext"),
+      # y uno de ellos era un `ci 2.yml` que GitHub registró como workflow
+      # activo y dejó develop en rojo. Se comprueba antes que nada porque
+      # es instantáneo y el diagnóstico es confuso si se descubre tarde.
+      - name: Comprobar que no hay archivos duplicados
+        run: |
+          dups=$(git ls-files | grep -E ' [0-9]+\.[A-Za-z0-9]+$' || true)
+          if [ -n "$dups" ]; then
+            echo "::error::Se han encontrado archivos duplicados (patrón 'nombre 2.ext'):"
+            echo "$dups"
+            echo "Suelen venir de duplicar carpetas en Finder o de conflictos de sincronización."
+            exit 1
+          fi
+          echo "Sin archivos duplicados."
+
       - name: Install
         run: pnpm install --frozen-lockfile
 
