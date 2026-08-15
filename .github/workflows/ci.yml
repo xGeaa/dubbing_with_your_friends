@@ -9,13 +9,21 @@ on:
   pull_request:
     branches: [develop, main]
 
-# Una rama con PR abierta recibe dos eventos (push + pull_request).
-# La clave es que ambos caigan en el MISMO grupo: `github.ref` no sirve
-# porque vale `refs/heads/<rama>` en push pero `refs/pull/<n>/merge` en
-# pull_request. `head_ref || ref_name` da el nombre de la rama en los dos
-# casos, así el run duplicado se cancela en vez de gastar minutos.
+# El grupo incluye `event_name` A PROPÓSITO, para que push y pull_request
+# NO se cancelen entre sí.
+#
+# Una rama con PR abierta recibe los dos eventos, así que se ejecutan dos
+# runs. Es tentador unificarlos con `head_ref || ref_name` para ahorrar
+# minutos, pero se probó y sale mal: el run cancelado publica un check con
+# el MISMO nombre ("Lint, Type-check & Build") y conclusión `cancelled`,
+# que GitHub muestra como fallo. Con la protección de rama activada eso
+# bloquearía el merge de una PR perfectamente sana.
+#
+# Así que se aceptan los dos runs (~25 s cada uno) y la concurrencia sirve
+# para lo que de verdad gasta minutos: cancelar el run anterior cuando se
+# empuja varias veces seguidas a la misma rama.
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
+  group: ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 # Mínimo privilegio: el workflow solo necesita leer el código.
