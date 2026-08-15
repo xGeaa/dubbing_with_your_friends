@@ -1,15 +1,30 @@
 name: CI
 
 on:
+  # El Issue #5 pide que se dispare en push a cualquier rama...
   push:
-    branches: [main, develop]
+    branches: ['**']
+  # ...y en PR hacia develop o main (necesario para que el check sea
+  # requerido en la protección de rama).
   pull_request:
-    branches: [main, develop]
+    branches: [develop, main]
+
+# Una rama con PR abierta recibiría dos runs (push + pull_request).
+# Este grupo cancela el run anterior de la misma referencia en cuanto
+# llega uno nuevo, para no gastar minutos de Actions.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# Mínimo privilegio: el workflow solo necesita leer el código.
+permissions:
+  contents: read
 
 jobs:
   verify:
     name: Lint, Type-check & Build
     runs-on: ubuntu-latest
+    timeout-minutes: 15
 
     steps:
       - uses: actions/checkout@v4
@@ -23,10 +38,23 @@ jobs:
           node-version: 20
           cache: 'pnpm'
 
-      - run: pnpm install --frozen-lockfile
+      # Caché de Turborepo: si no cambia el código de un paquete,
+      # su tarea se resuelve desde caché en vez de reejecutarse.
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-
 
-      - run: pnpm lint
+      - name: Install
+        run: pnpm install --frozen-lockfile
 
-      - run: pnpm type-check
+      - name: Lint
+        run: pnpm lint
 
-      - run: pnpm build
+      - name: Type-check
+        run: pnpm type-check
+
+      - name: Build
+        run: pnpm build
