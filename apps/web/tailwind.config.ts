@@ -52,6 +52,10 @@ const config: Config = {
           DEFAULT: 'hsl(var(--card))',
           foreground: 'hsl(var(--card-foreground))',
         },
+        crimson: {
+          DEFAULT: 'hsl(var(--crimson))',
+          foreground: 'hsl(var(--crimson-foreground))',
+        },
       },
       borderRadius: {
         lg: 'var(--radius)',
@@ -67,10 +71,20 @@ const config: Config = {
           from: { height: 'var(--radix-accordion-content-height)' },
           to: { height: '0' },
         },
+        'pulse-glow': {
+          '0%, 100%': { boxShadow: '0 0 0 0 hsl(var(--primary) / 0.45)' },
+          '50%': { boxShadow: '0 0 0 12px hsl(var(--primary) / 0)' },
+        },
+        'fade-in-up': {
+          from: { opacity: '0', transform: 'translateY(8px)' },
+          to: { opacity: '1', transform: 'translateY(0)' },
+        },
       },
       animation: {
         'accordion-down': 'accordion-down 0.2s ease-out',
         'accordion-up': 'accordion-up 0.2s ease-out',
+        'pulse-glow': 'pulse-glow 2s ease-in-out infinite',
+        'fade-in-up': 'fade-in-up 0.3s ease-out both',
       },
     },
   },
