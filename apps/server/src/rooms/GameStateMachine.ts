@@ -22,7 +22,7 @@ export class GameStateMachine {
 
   startGame(roomCode: string, clip: Clip, config: GameConfig = {}): void {
     const roundDurationSec = config.roundDurationSec ?? RECORD_DURATION_SEC
-    const room = this.roomManager.setClip(roomCode, clip)
+    this.roomManager.setClip(roomCode, clip)
     const updatedRoom = this.roomManager.setPhase(roomCode, 'record')
 
     // Notifica a todos: empieza la fase de grabación
