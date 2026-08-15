@@ -9,11 +9,13 @@ on:
   pull_request:
     branches: [develop, main]
 
-# Una rama con PR abierta recibiría dos runs (push + pull_request).
-# Este grupo cancela el run anterior de la misma referencia en cuanto
-# llega uno nuevo, para no gastar minutos de Actions.
+# Una rama con PR abierta recibe dos eventos (push + pull_request).
+# La clave es que ambos caigan en el MISMO grupo: `github.ref` no sirve
+# porque vale `refs/heads/<rama>` en push pero `refs/pull/<n>/merge` en
+# pull_request. `head_ref || ref_name` da el nombre de la rama en los dos
+# casos, así el run duplicado se cancela en vez de gastar minutos.
 concurrency:
-  group: ci-${{ github.workflow }}-${{ github.ref }}
+  group: ci-${{ github.workflow }}-${{ github.head_ref || github.ref_name }}
   cancel-in-progress: true
 
 # Mínimo privilegio: el workflow solo necesita leer el código.
