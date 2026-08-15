@@ -1,0 +1,78 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /*
+   * Tema oscuro por defecto (party game): base Slate, acento Cyan, alarma Crimson.
+   * Las variables se declaran en :root y se repiten en .dark para que
+   * shadcn/ui funcione igual aunque en el futuro se añada un toggle de tema.
+   */
+  :root,
+  .dark {
+    --background: 222 47% 5%;
+    --foreground: 210 40% 98%;
+
+    --card: 222 40% 9%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 222 44% 7%;
+    --popover-foreground: 210 40% 98%;
+
+    /* Cyan eléctrico como color primario */
+    --primary: 187 94% 43%;
+    --primary-foreground: 222 47% 6%;
+
+    --secondary: 217 33% 17%;
+    --secondary-foreground: 210 40% 96%;
+
+    --muted: 217 33% 15%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 217 33% 20%;
+    --accent-foreground: 210 40% 98%;
+
+    /* Crimson para errores y para el acento del host */
+    --destructive: 348 83% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --crimson: 348 83% 55%;
+    --crimson-foreground: 0 0% 100%;
+
+    --border: 217 33% 18%;
+    --input: 217 33% 18%;
+    --ring: 187 94% 43%;
+
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  /* Fondo de escenario: dos focos (cyan y crimson) sobre slate */
+  .bg-stage {
+    background-image:
+      radial-gradient(
+        60rem 40rem at 15% -10%,
+        hsl(var(--primary) / 0.18),
+        transparent 60%
+      ),
+      radial-gradient(
+        50rem 35rem at 90% 10%,
+        hsl(var(--crimson) / 0.16),
+        transparent 60%
+      );
+  }
+
+  .text-gradient-party {
+    @apply bg-gradient-to-br from-primary via-primary to-[hsl(var(--crimson))] bg-clip-text text-transparent;
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "CommonJS",
+    "lib": ["ES2020"],
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true
+    // Sin `paths` hacia el código fuente de shared-types: apuntar al .ts
+    // metía archivos de fuera de `rootDir` en el programa y rompía `tsc`.
+    // Ahora resuelve por node_modules (symlink del workspace) a dist/.
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}

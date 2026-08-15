@@ -1,0 +1,85 @@
+name: CI
+
+on:
+  # El Issue #5 pide que se dispare en push a cualquier rama...
+  push:
+    branches: ['**']
+  # ...y en PR hacia develop o main (necesario para que el check sea
+  # requerido en la protección de rama).
+  pull_request:
+    branches: [develop, main]
+
+# El grupo incluye `event_name` A PROPÓSITO, para que push y pull_request
+# NO se cancelen entre sí.
+#
+# Una rama con PR abierta recibe los dos eventos, así que se ejecutan dos
+# runs. Es tentador unificarlos con `head_ref || ref_name` para ahorrar
+# minutos, pero se probó y sale mal: el run cancelado publica un check con
+# el MISMO nombre ("Lint, Type-check & Build") y conclusión `cancelled`,
+# que GitHub muestra como fallo. Con la protección de rama activada eso
+# bloquearía el merge de una PR perfectamente sana.
+#
+# Así que se aceptan los dos runs (~25 s cada uno) y la concurrencia sirve
+# para lo que de verdad gasta minutos: cancelar el run anterior cuando se
+# empuja varias veces seguidas a la misma rama.
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.event_name }}-${{ github.head_ref || github.ref_name }}
+  cancel-in-progress: true
+
+# Mínimo privilegio: el workflow solo necesita leer el código.
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Lint, Type-check & Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v3
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+
+      # Caché de Turborepo: si no cambia el código de un paquete,
+      # su tarea se resuelve desde caché en vez de reejecutarse.
+      - uses: actions/cache@v4
+        with:
+          path: .turbo
+          key: turbo-${{ runner.os }}-${{ github.sha }}
+          restore-keys: |
+            turbo-${{ runner.os }}-
+
+      # La PR #24 coló 24 duplicados del Finder de macOS ("archivo 2.ext"),
+      # y uno de ellos era un `ci 2.yml` que GitHub registró como workflow
+      # activo y dejó develop en rojo. Se comprueba antes que nada porque
+      # es instantáneo y el diagnóstico es confuso si se descubre tarde.
+      - name: Comprobar que no hay archivos duplicados
+        run: |
+          dups=$(git ls-files | grep -E ' [0-9]+\.[A-Za-z0-9]+$' || true)
+          if [ -n "$dups" ]; then
+            echo "::error::Se han encontrado archivos duplicados (patrón 'nombre 2.ext'):"
+            echo "$dups"
+            echo "Suelen venir de duplicar carpetas en Finder o de conflictos de sincronización."
+            exit 1
+          fi
+          echo "Sin archivos duplicados."
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Lint
+        run: pnpm lint
+
+      - name: Type-check
+        run: pnpm type-check
+
+      - name: Build
+        run: pnpm build

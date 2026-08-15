@@ -7,6 +7,8 @@
 node_modules/
 .pnp
 .pnp.js
+# Caché local de pnpm (se crea al instalar con store dir en el repo)
+.pnpm-store/
 
 # ---- Build outputs ----
 .next/
@@ -61,6 +63,9 @@ Desktop.ini
 # ---- Supabase ----
 supabase/.branches/
 supabase/.temp/
+
+# ---- Herramientas locales ----
+.claude/settings.local.json
 
 # ---- Misc ----
 .vercel
