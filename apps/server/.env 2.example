@@ -1,5 +1,0 @@
-PORT=3001
-CLIENT_URL=http://localhost:3000
-SUPABASE_URL=https://xxxx.supabase.co
-SUPABASE_SERVICE_ROLE_KEY=eyJ...
-AUDIO_BUCKET_NAME=audio-recordings
