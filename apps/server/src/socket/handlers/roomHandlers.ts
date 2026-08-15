@@ -1,9 +1,14 @@
 import type { Server, Socket } from 'socket.io'
 import type { RoomManager } from '../../rooms/RoomManager'
+import type { GameStateMachine } from '../../rooms/GameStateMachine'
 import {
   ROOM_EVENTS,
+  PLAYER_EVENTS,
+  type Clip,
   type RoomCreatePayload,
   type RoomJoinPayload,
+  type PlayerAudioReadyPayload,
+  type PlayerVotePayload,
 } from '@dub/shared-types'
 
 function randomNickname(): string {
@@ -17,14 +22,14 @@ function randomNickname(): string {
 export function registerRoomHandlers(
   io: Server,
   socket: Socket,
-  roomManager: RoomManager
+  roomManager: RoomManager,
+  gsm: GameStateMachine,
 ): void {
   // ── room:create ────────────────────────────────────────────────────────────
   socket.on(ROOM_EVENTS.CREATE, (payload: RoomCreatePayload) => {
     try {
       const nickname = payload.nickname?.trim() || randomNickname()
       const room = roomManager.createRoom(socket.id, nickname)
-
       void socket.join(room.code)
       socket.emit(ROOM_EVENTS.UPDATED, { room })
       console.log(`[socket] ${nickname} created room ${room.code}`)
@@ -47,8 +52,6 @@ export function registerRoomHandlers(
 
       const room = roomManager.joinRoom(code, socket.id, nickname)
       void socket.join(code)
-
-      // Notifica a todos en la sala (incluido el que acaba de entrar)
       io.to(code).emit(ROOM_EVENTS.UPDATED, { room })
       console.log(`[socket] ${nickname} joined room ${code}`)
     } catch (err) {
@@ -60,54 +63,89 @@ export function registerRoomHandlers(
 
   // ── room:leave ─────────────────────────────────────────────────────────────
   socket.on(ROOM_EVENTS.LEAVE, () => {
-    handleLeave(io, socket, roomManager)
+    handleLeave(io, socket, roomManager, gsm)
   })
 
-  // ── disconnect ────────────────────────────────────────────────────────────
+  // ── disconnect ─────────────────────────────────────────────────────────────
   socket.on('disconnect', () => {
-    handleLeave(io, socket, roomManager)
+    handleLeave(io, socket, roomManager, gsm)
   })
 
   // ── room:start ─────────────────────────────────────────────────────────────
   socket.on(ROOM_EVENTS.START, (payload: { code: string }) => {
+    void (async () => {
+      try {
+        const code = payload.code?.toUpperCase()
+
+        if (!roomManager.isHost(code, socket.id)) {
+          socket.emit(ROOM_EVENTS.ERROR, { message: 'Only the host can start the game' })
+          return
+        }
+
+        const room = roomManager.getRoom(code)
+        if (!room) {
+          socket.emit(ROOM_EVENTS.ERROR, { message: 'Room not found' })
+          return
+        }
+
+        if (room.players.length < 2) {
+          socket.emit(ROOM_EVENTS.ERROR, { message: 'Need at least 2 players to start' })
+          return
+        }
+
+        // Pedir clip al servidor
+        const res = await fetch(`http://localhost:${process.env.PORT ?? 3001}/clips/random`)
+        const clip = await res.json() as Clip
+
+        gsm.startGame(code, clip)
+      } catch (err) {
+        socket.emit(ROOM_EVENTS.ERROR, { message: 'Could not start game' })
+        console.error('[socket] room:start error', err)
+      }
+    })()
+  })
+
+  // ── player:audioReady ──────────────────────────────────────────────────────
+  socket.on(PLAYER_EVENTS.AUDIO_READY, (payload: PlayerAudioReadyPayload) => {
     try {
-      const code = payload.code?.toUpperCase()
-
-      if (!roomManager.isHost(code, socket.id)) {
-        socket.emit(ROOM_EVENTS.ERROR, { message: 'Only the host can start the game' })
-        return
-      }
-
-      const room = roomManager.getRoom(code)
-      if (!room) {
-        socket.emit(ROOM_EVENTS.ERROR, { message: 'Room not found' })
-        return
-      }
-
-      if (room.players.length < 2) {
-        socket.emit(ROOM_EVENTS.ERROR, { message: 'Need at least 2 players to start' })
-        return
-      }
-
-      // La GameStateMachine (ISSUE-017) tomará el control desde aquí.
-      // Por ahora simplemente cambiamos la fase a 'record' para que el frontend pueda avanzar.
-      const updatedRoom = roomManager.setPhase(code, 'record')
-      io.to(code).emit(ROOM_EVENTS.UPDATED, { room: updatedRoom })
-      console.log(`[socket] game started in room ${code}`)
+      gsm.playerAudioReady(payload.playerId, socket.id, payload.audioUrl)
     } catch (err) {
-      socket.emit(ROOM_EVENTS.ERROR, { message: 'Could not start game' })
-      console.error('[socket] room:start error', err)
+      console.error('[socket] player:audioReady error', err)
+    }
+  })
+
+  // ── player:vote ────────────────────────────────────────────────────────────
+  socket.on(PLAYER_EVENTS.VOTE, (payload: PlayerVotePayload & { roomCode: string }) => {
+    try {
+      gsm.registerVote(payload.roomCode, socket.id, payload.targetPlayerId)
+    } catch (err) {
+      console.error('[socket] player:vote error', err)
+    }
+  })
+
+  // ── game:playbackFinished ──────────────────────────────────────────────────
+  socket.on('game:playbackFinished', (payload: { roomCode: string }) => {
+    try {
+      gsm.playbackFinished(payload.roomCode)
+    } catch (err) {
+      console.error('[socket] game:playbackFinished error', err)
     }
   })
 }
 
-function handleLeave(io: Server, socket: Socket, roomManager: RoomManager): void {
-  // Busca en qué salas está el socket y lo elimina de todas
+function handleLeave(
+  io: Server,
+  socket: Socket,
+  roomManager: RoomManager,
+  gsm: GameStateMachine,
+): void {
   socket.rooms.forEach((roomCode) => {
-    if (roomCode === socket.id) return // socket siempre está en su propia room
+    if (roomCode === socket.id) return
     const room = roomManager.leaveRoom(roomCode, socket.id)
     if (room) {
       io.to(roomCode).emit(ROOM_EVENTS.UPDATED, { room })
+    } else {
+      gsm.cleanup(roomCode)
     }
     console.log(`[socket] ${socket.id} left room ${roomCode}`)
   })

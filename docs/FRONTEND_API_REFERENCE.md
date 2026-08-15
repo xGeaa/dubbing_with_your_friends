@@ -177,10 +177,72 @@ const isHost = localPlayer?.isHost ?? false
 
 ---
 
+## Eventos de juego (fase record → playback → vote → results)
+
+### Cuando empieza la grabación
+```ts
+// El servidor emite esto al iniciar cada ronda
+socket.on('game:start', ({ clip, roundDurationSec }) => {
+  // clip: Clip — el vídeo a doblar
+  // roundDurationSec: number — segundos para grabar (por defecto 30)
+})
+```
+
+### Cuando el jugador termina de grabar y sube el audio
+```ts
+// Después de POST /audio/upload, emite esto:
+socket.emit('player:audioReady', {
+  playerId: socket.id,
+  audioUrl: url, // la URL que devuelve /audio/upload
+})
+```
+
+### Cuando el frontend termina de reproducir todos los doblajes
+```ts
+// El host (o cualquier jugador) emite esto para pasar a votación:
+socket.emit('game:playbackFinished', { roomCode: room.code })
+```
+
+### Para votar
+```ts
+socket.emit('player:vote', {
+  roomCode: room.code,
+  targetPlayerId: 'id-del-jugador-votado',
+})
+```
+
+### Resultados
+```ts
+socket.on('game:results', ({ scores, isLastRound }) => {
+  // scores: RoundScore[] — ranking de la ronda
+  // isLastRound: boolean — si es true, la partida termina
+})
+
+socket.on('game:end', () => {
+  // La partida ha terminado, volver al lobby
+})
+```
+
+### Cambios de fase
+```ts
+// El servidor emite esto en cada transición
+socket.on('game:phaseChange', ({ phase }) => {
+  // phase: GamePhase — 'record' | 'playback' | 'vote' | 'results'
+  // También llega en room:updated, usa el que prefieras
+})
+```
+
+---
+
 ## Checklist de conexión (orden recomendado)
 
 - [ ] `socket.connect()` al entrar a `/room/[code]`
 - [ ] Escuchar `room:updated` y llamar a `setRoom()` siempre
 - [ ] Escuchar `room:error` y mostrar feedback al usuario
+- [ ] Escuchar `game:start` para iniciar grabación
+- [ ] Emitir `player:audioReady` tras subir el audio
+- [ ] Emitir `game:playbackFinished` tras reproducir todos los doblajes
+- [ ] Emitir `player:vote` al votar
+- [ ] Escuchar `game:results` para mostrar el ranking
 - [ ] `socket.disconnect()` al salir de la página (cleanup en useEffect)
 - [ ] Usar `room.phase` para renderizar el componente correcto
