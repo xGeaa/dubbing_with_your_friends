@@ -117,23 +117,19 @@ interface Clip {
 
 ## REST API
 
-### Obtener clip aleatorio
+### Obtener clip aleatorio ✅ IMPLEMENTADA
 ```ts
 // GET /clips/random?exclude=id1,id2
 const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}/clips/random`)
 const clip: Clip = await res.json()
-```
 
-> ⚠️ Esta API aún no está implementada (ISSUE-011). Mockea la respuesta hasta que esté lista:
-```ts
-const mockClip: Clip = {
-  id: '1',
-  youtubeId: '_oHByo8ixxg',
-  startSec: 0,
-  endSec: 30,
-  title: 'Chaplin — The Kid',
-  category: 'classic',
-}
+// Para excluir clips ya vistos en la sesión:
+const usedIds = ['id1', 'id2']
+const res = await fetch(
+  `${process.env.NEXT_PUBLIC_SERVER_URL}/clips/random?exclude=${usedIds.join(',')}`
+)
+const clip: Clip = await res.json()
+// Respuesta: { id, youtubeId, startSec, endSec, title, category }
 ```
 
 ### Subir grabación de audio
