@@ -66,8 +66,8 @@ export function registerRoomHandlers(
     handleLeave(io, socket, roomManager, gsm)
   })
 
-  // ── disconnect ─────────────────────────────────────────────────────────────
-  socket.on('disconnect', () => {
+  // ── disconnecting (socket.rooms aún está disponible aquí) ─────────────────
+  socket.on('disconnecting', () => {
     handleLeave(io, socket, roomManager, gsm)
   })
 
