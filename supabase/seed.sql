@@ -1,36 +1,53 @@
-INSERT INTO clips (youtube_id, start_sec, end_sec, title, category) VALUES
-  -- Chaplin (dominio público)
-  ('_oHByo8ixxg', 0, 30, 'Chaplin — The Kid (1921)', 'classic'),
-  ('HkCqKqFpNH4', 10, 35, 'Chaplin — Modern Times (1936)', 'classic'),
-  ('2PDeWkMnGwg', 0, 28, 'Chaplin — The Gold Rush (1925)', 'classic'),
+-- supabase/seed.sql
+-- Clips para "Dubbing With Your Friends"
+-- IDs: gen_random_uuid() — compatible con columna uuid.
+-- characters: personajes del clip (uno por jugador).
+--
+-- VERIFICAR timestamps en: https://youtu.be/<youtube_id>?t=<start_sec>
 
-  -- Buster Keaton (dominio público)
-  ('ByEPsrEHyGg', 5, 35, 'Keaton — The General (1926)', 'classic'),
-  ('tFTCaQMXsVM', 0, 30, 'Keaton — Steamboat Bill Jr (1928)', 'classic'),
+TRUNCATE TABLE clips CASCADE;
 
-  -- Harold Lloyd (dominio público)
-  ('gUG2-OJ6hbA', 0, 30, 'Harold Lloyd — Safety Last (1923)', 'classic'),
+INSERT INTO clips (id, youtube_id, start_sec, end_sec, title, category, characters) VALUES
 
-  -- Fleischer Studios (dominio público pre-1928)
-  ('ykmD0d1PQI4', 0, 25, 'Fleischer — Out of the Inkwell (1921)', 'animation'),
-  ('tUPMcZSMpJs', 0, 28, 'Fleischer — Koko the Clown (1920)', 'animation'),
+-- ─── MADAGASCAR ────────────────────────────────────────────────────────────────
+(gen_random_uuid(), 'ApuFuuCJc3s',  0,  45, 'I Like to Move It — Madagascar',             'animation', ARRAY['King Julian', 'Mort', 'Maurice']),
+(gen_random_uuid(), 'UjEyM3HDGUU',  0,  40, 'Meeting King Julian — Madagascar',           'animation', ARRAY['King Julian', 'Mort']),
+(gen_random_uuid(), '8ty1025m6XQ',  0,  38, 'Mort cruza la línea — Madagascar',           'animation', ARRAY['King Julian', 'Mort']),
+(gen_random_uuid(), 'bh4574Ndgco',  5,  40, 'Alex y los pingüinos — Madagascar',          'animation', ARRAY['Alex', 'Pinguino jefe']),
+(gen_random_uuid(), 'KchwikGg9M0',  0,  35, 'Pingüinos preparan la huida — Madagascar',   'animation', ARRAY['Pinguino jefe', 'Pinguino 2']),
 
-  -- NASA (Creative Commons)
-  ('STp_VRPzFiA', 0, 30, 'NASA — ISS Spacewalk', 'documentary'),
-  ('86YLFOog4GM', 15, 45, 'NASA — Saturn V Launch', 'documentary'),
-  ('CbFr6VPcaT8', 0, 30, 'NASA — Moon Landing (1969)', 'documentary'),
+-- ─── SHREK ─────────────────────────────────────────────────────────────────────
+(gen_random_uuid(), '6Q6qHRHTTPg',  0,  40, 'Talking Donkey — Shrek',                    'animation', ARRAY['Shrek', 'Burro']),
+(gen_random_uuid(), 'zUQ9bjBfiRk',  0,  30, 'Ogres Are Like Onions — Shrek',             'animation', ARRAY['Shrek', 'Burro']),
+(gen_random_uuid(), 'IW9SL-5ahuM', 10,  50, '¿Ya llegamos? — Shrek 2',                   'animation', ARRAY['Shrek', 'Burro', 'Fiona']),
 
-  -- Internet Archive CC0
-  ('MEBM0uqXTpA', 0, 30, 'Duck and Cover (1952)', 'classic'),
-  ('EKRVuFVAekI', 0, 28, 'Vintage TV Commercial (1950s)', 'comedy'),
+-- ─── KUNG FU PANDA ──────────────────────────────────────────────────────────────
+(gen_random_uuid(), 'QZlOZtdJA50',  0,  40, 'Po intenta entrar — Kung Fu Panda',          'animation', ARRAY['Po', 'Tigresa']),
+(gen_random_uuid(), 'qj-Mlygkheg',  0,  35, 'No hay accidentes — Kung Fu Panda',          'animation', ARRAY['Oogway', 'Shifu']),
+(gen_random_uuid(), 'Bqvm_iMBNPU',  5,  42, 'Roba la bola — Kung Fu Panda',              'animation', ARRAY['Po', 'Shifu']),
 
-  -- Cortometrajes CC (Pixabay / Pexels video)
-  ('dQw4w9WgXcQ', 10, 40, 'Classic Moment #1', 'comedy'),
-  ('jNQXAC9IVRw', 0, 19, 'First YouTube Video Ever', 'comedy'),
+-- ─── MR. BEAN ──────────────────────────────────────────────────────────────────
+(gen_random_uuid(), 'wk2oRMHOyjE',  8,  45, 'Mr. Bean en el dentista',                   'classic',   ARRAY['Mr. Bean', 'Dentista']),
+(gen_random_uuid(), 'nIHyr_fp_yI',  5,  42, 'Mr. Bean y el pavo de Navidad',             'classic',   ARRAY['Mr. Bean']),
+(gen_random_uuid(), 'iI3pRSqjPsc', 10,  48, 'Mr. Bean en la playa',                      'classic',   ARRAY['Mr. Bean']),
+(gen_random_uuid(), 'P2qezAF7edI',  5,  40, 'Mr. Bean en el examen',                     'classic',   ARRAY['Mr. Bean', 'Vecino del examen']),
 
-  -- Documentales históricos (dominio público EEUU)
-  ('7GCf-cJhBhI', 0, 30, 'Man on the Moon — Archive', 'documentary'),
-  ('XqZsoesa55w', 5, 35, 'Old Cartoons Compilation', 'animation'),
-  ('V1bFr2SWP1I', 0, 30, 'Classic Animation 1920s', 'animation'),
-  ('hVV6VDkFVgE', 0, 28, 'Vintage Sport Reel', 'classic'),
-  ('SJUhlRoBL8M', 0, 30, 'Early Cinema Gems', 'classic');
+-- ─── TOM & JERRY ────────────────────────────────────────────────────────────────
+(gen_random_uuid(), 'Gkysb_8N9os',  0,  35, 'Tom & Jerry — persecución clásica',          'classic',   ARRAY['Tom', 'Jerry']),
+
+-- ─── ICE AGE — SCRAT (sin diálogos, comedia física pura) ────────────────────────
+(gen_random_uuid(), 'ObfjzFv9Ci0',  0,  40, 'Scrat y la bellota — Ice Age',              'animation', ARRAY['Scrat']),
+(gen_random_uuid(), 'K3v-WIGPAo0',  0,  38, 'Scrat desencadena la era del hielo',        'animation', ARRAY['Scrat']),
+(gen_random_uuid(), '6t8R7egfY4c',  0,  35, 'Scrat congelado — Ice Age',                 'animation', ARRAY['Scrat']),
+(gen_random_uuid(), 'K0BL-S7T5FM',  0,  40, 'Scrat con tecnología alienígena',           'animation', ARRAY['Scrat']),
+
+-- ─── FINDING NEMO ────────────────────────────────────────────────────────────────
+(gen_random_uuid(), 'zomVJJUZW3M',  0,  38, 'Dory habla ballena — Nemo',                 'animation', ARRAY['Dory', 'Marlin']),
+(gen_random_uuid(), 'eyvlP87wZOg',  0,  35, 'Fish Are Friends — Nemo',                   'animation', ARRAY['Bruce el tiburón', 'Marlin', 'Dory']),
+
+-- ─── MINIONS ────────────────────────────────────────────────────────────────────
+(gen_random_uuid(), 'Exn8CdNwByw',  5,  42, 'Minions trabajando — Despicable Me',        'animation', ARRAY['Minion 1', 'Minion 2', 'Minion 3']),
+(gen_random_uuid(), 'PPc1K3nQUNk',  8,  45, 'Minions siendo Minions',                    'animation', ARRAY['Minion 1', 'Minion 2']),
+
+-- ─── NATURALEZA ─────────────────────────────────────────────────────────────────
+(gen_random_uuid(), 'lWMzqjQ3MJA',  0,  35, 'Pingüinos resbalando',                      'nature',    ARRAY['Pingüino 1', 'Pingüino 2']);
