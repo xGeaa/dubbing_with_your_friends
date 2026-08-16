@@ -47,10 +47,11 @@ export class GameStateMachine {
 
     // Añadir grabación al estado de la sala
     const player = room.players.find((p) => p.id === playerId)
+    const character: string = player?.assignedCharacter ?? ''
     room.recordings.push({
       playerId,
       playerNickname: player?.nickname ?? 'Unknown',
-      character: player?.assignedCharacter ?? '',
+      character,
       audioUrl,
       votesReceived: 0,
     })
