@@ -5,7 +5,8 @@ import type { Clip } from '@dub/shared-types'
 const router = Router()
 
 // GET /clips/random?exclude=id1,id2
-router.get('/random', async (req, res) => {
+router.get('/random', (req, res) => {
+  void (async () => {
   try {
     const excludeParam = req.query['exclude']
     const excludeIds = typeof excludeParam === 'string' && excludeParam
@@ -52,6 +53,7 @@ router.get('/random', async (req, res) => {
     console.error('[clips] GET /random error', err)
     res.status(500).json({ message: 'Internal server error' })
   }
+  })()
 })
 
 export default router
