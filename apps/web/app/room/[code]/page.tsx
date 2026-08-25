@@ -6,8 +6,8 @@ import { ArrowLeft, LoaderCircle } from 'lucide-react'
 import {
   GAME_EVENTS,
   ROOM_EVENTS,
-  type GameStartPayload,
   type GameResultsPayload,
+  type GameStartPayload,
   type RoomErrorPayload,
   type RoomUpdatedPayload,
   type RoundScore,

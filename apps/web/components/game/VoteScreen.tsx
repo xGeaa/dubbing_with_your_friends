@@ -83,7 +83,6 @@ export function VoteScreen({
                 </div>
 
                 <div className="flex items-center gap-3">
-                  {/* Votos recibidos (visibles para todos) */}
                   {rec.votesReceived > 0 && (
                     <span className="text-sm font-medium text-primary">
                       👍 {rec.votesReceived}

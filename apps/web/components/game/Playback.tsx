@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { Play, SkipForward } from 'lucide-react'
-import type { Clip, Recording, Room } from '@dub/shared-types'
+import { GAME_EVENTS, type Clip, type Recording, type Room } from '@dub/shared-types'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
@@ -51,7 +51,7 @@ export function Playback({ recordings, clip, room }: PlaybackProps) {
       setPhase('intro')
     } else {
       setPhase('done')
-      getSocket().emit('game:playbackFinished', { roomCode: room.code })
+      getSocket().emit(GAME_EVENTS.PHASE_CHANGE, { roomCode: room.code, phase: 'vote' })
     }
   }, [index, recordings.length, room.code])
 
@@ -105,7 +105,6 @@ export function Playback({ recordings, clip, room }: PlaybackProps) {
                 Escuchando doblaje {index + 1}…
               </p>
               <div className="flex gap-2">
-                {/* Saltar (avanza sin esperar que acabe el audio) */}
                 <Button
                   variant="secondary"
                   size="sm"
