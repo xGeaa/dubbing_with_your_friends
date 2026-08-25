@@ -46,9 +46,13 @@ export class GameStateMachine {
     if (!room || room.phase !== 'record') return
 
     // Añadir grabación al estado de la sala
+    const player = room.players.find((p) => p.id === playerId)
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+    const character: string = player?.assignedCharacter ?? ''
     room.recordings.push({
       playerId,
-      playerNickname: room.players.find((p) => p.id === playerId)?.nickname ?? 'Unknown',
+      playerNickname: player?.nickname ?? 'Unknown',
+      character,
       audioUrl,
       votesReceived: 0,
     })
