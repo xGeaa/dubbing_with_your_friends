@@ -106,9 +106,9 @@ export function registerRoomHandlers(
   })
 
   // ── player:audioReady ──────────────────────────────────────────────────────
-  socket.on(PLAYER_EVENTS.AUDIO_READY, (payload: PlayerAudioReadyPayload) => {
+  socket.on(PLAYER_EVENTS.AUDIO_READY, (payload: PlayerAudioReadyPayload & { roomCode: string }) => {
     try {
-      gsm.playerAudioReady(payload.playerId, socket.id, payload.audioUrl)
+      gsm.playerAudioReady(payload.roomCode, socket.id, payload.audioUrl)
     } catch (err) {
       console.error('[socket] player:audioReady error', err)
     }
