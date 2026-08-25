@@ -6,16 +6,21 @@ import { ArrowLeft, LoaderCircle } from 'lucide-react'
 import {
   GAME_EVENTS,
   ROOM_EVENTS,
+  type GameResultsPayload,
   type GameStartPayload,
   type RoomErrorPayload,
   type RoomUpdatedPayload,
+  type RoundScore,
 } from '@dub/shared-types'
 
 import { Button } from '@/components/ui/button'
 import { ErrorMessage } from '@/components/game/ErrorMessage'
 import { Lobby } from '@/components/game/Lobby'
+import { Playback } from '@/components/game/Playback'
 import { PhasePlaceholder } from '@/components/game/PhasePlaceholder'
 import { RecordScreen } from '@/components/game/RecordScreen'
+import { Results } from '@/components/game/Results'
+import { VoteScreen } from '@/components/game/VoteScreen'
 import { loadNickname } from '@/lib/nickname'
 import { isValidRoomCode, normalizeRoomCode } from '@/lib/room'
 import {
@@ -47,6 +52,9 @@ export default function RoomPage({ params }: { params: { code: string } }) {
     durationSec: number
     startedAt: number
   } | null>(null)
+
+  const [scores, setScores] = useState<RoundScore[]>([])
+  const [isLastRound, setIsLastRound] = useState(false)
 
   useEffect(() => {
     const { setRoom, setLocalPlayer, reset } = useGameStore.getState()
@@ -94,6 +102,11 @@ export default function RoomPage({ params }: { params: { code: string } }) {
       setRound({ durationSec: roundDurationSec, startedAt: Date.now() })
     }
 
+    const onGameResults = ({ scores: s, isLastRound: last }: GameResultsPayload) => {
+      setScores(s)
+      setIsLastRound(last)
+    }
+
     const onRoomError = ({ message }: RoomErrorPayload) => {
       const text = translateRoomError(message)
       // Si ya estamos dentro de la sala el error es de una acción concreta
@@ -126,6 +139,7 @@ export default function RoomPage({ params }: { params: { code: string } }) {
     socket.on(ROOM_EVENTS.UPDATED, onUpdated)
     socket.on(ROOM_EVENTS.ERROR, onRoomError)
     socket.on(GAME_EVENTS.START, onGameStart)
+    socket.on(GAME_EVENTS.RESULTS, onGameResults)
     socket.on('connect', onConnect)
     socket.on('disconnect', onDisconnect)
     socket.on('connect_error', onConnectError)
@@ -144,6 +158,7 @@ export default function RoomPage({ params }: { params: { code: string } }) {
       socket.off(ROOM_EVENTS.UPDATED, onUpdated)
       socket.off(ROOM_EVENTS.ERROR, onRoomError)
       socket.off(GAME_EVENTS.START, onGameStart)
+      socket.off(GAME_EVENTS.RESULTS, onGameResults)
       socket.off('connect', onConnect)
       socket.off('disconnect', onDisconnect)
       socket.off('connect_error', onConnectError)
@@ -169,6 +184,37 @@ export default function RoomPage({ params }: { params: { code: string } }) {
           duration={round?.durationSec ?? DEFAULT_ROUND_SEC}
           startedAt={round?.startedAt}
           localPlayerId={localPlayer?.id ?? null}
+        />
+      )
+    }
+
+    if (room.phase === 'playback' && room.currentClip) {
+      return (
+        <Playback
+          recordings={room.recordings}
+          clip={room.currentClip}
+          room={room}
+        />
+      )
+    }
+
+    if (room.phase === 'vote') {
+      return (
+        <VoteScreen
+          recordings={room.recordings}
+          room={room}
+          localPlayerId={localPlayer?.id ?? null}
+        />
+      )
+    }
+
+    if (room.phase === 'results') {
+      return (
+        <Results
+          scores={scores}
+          room={room}
+          localPlayerId={localPlayer?.id ?? null}
+          isLastRound={isLastRound}
         />
       )
     }
