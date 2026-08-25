@@ -29,10 +29,11 @@ export function Playback({ recordings, clip, room }: PlaybackProps) {
 
   // Limpia el audio al cambiar de grabación
   useEffect(() => {
+    const audio = audioRef.current
     return () => {
-      if (audioRef.current) {
-        audioRef.current.pause()
-        audioRef.current.currentTime = 0
+      if (audio) {
+        audio.pause()
+        audio.currentTime = 0
       }
     }
   }, [index])
