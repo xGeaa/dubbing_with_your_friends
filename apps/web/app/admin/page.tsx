@@ -8,6 +8,7 @@
 import { listClips } from './actions'
 import { ClipManagerClient } from './ClipManagerClient'
 
+export const dynamic = 'force-dynamic'
 interface AdminPageProps {
   searchParams: { key?: string }
 }
